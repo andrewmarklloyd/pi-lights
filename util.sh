@@ -1,12 +1,5 @@
 #!/bin/bash
 
-username=${1}
-host=${2}
-if [[ -z ${username} || -z ${host} ]]; then
-  echo "use username and host as arguments"
-  exit 1
-fi
-
 build() {
   GOOS=linux GOARCH=arm GOARM=5 go build -o lights main.go
 }
@@ -18,8 +11,15 @@ deploy() {
   curl http://${host}:8080/switch
 }
 
-ssh ${username}@${host} "sudo systemctl stop lights.service"
-build
-if [[ $? == 0 ]]; then
+if [[ ${1} == 'build' ]]; then
+  build
+elif [[ ${1} == 'deploy' ]]; then
+  username=${2}
+  host=${3}
+  if [[ -z ${username} || -z ${host} ]]; then
+    echo "Use username and host as arguments. Example:"
+    echo "./util.sh deploy pi raspberrypi.local"
+    exit 1
+  fi
   deploy
 fi
