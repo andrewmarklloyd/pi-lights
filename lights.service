@@ -1,0 +1,14 @@
+[Unit]
+Description=Lights
+After=network.target
+
+[Service]
+ExecStart=/home/pi/lights
+WorkingDirectory=/home/pi/
+StandardOutput=inherit
+StandardError=inherit
+Restart=always
+User=pi
+
+[Install]
+WantedBy=multi-user.target
