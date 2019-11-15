@@ -17,8 +17,10 @@ import (
 var pin rpio.Pin
 var pinNumber int
 var hostname string
+var testmode bool
 
 func main() {
+	testmode = false
 	hostname, _ = os.Hostname()
 	data, _ := ioutil.ReadFile("./config")
 	s := strings.Trim(string(data), "\n")
@@ -27,51 +29,57 @@ func main() {
 
 	err := rpio.Open()
 	if err != nil {
-		panic(fmt.Sprint("unable to open gpio", err.Error()))
+		fmt.Println("unable to open gpio", err.Error())
+		fmt.Println("running in test mode")
+		testmode = true
+	} else {
+		fmt.Println("creating channel")
+		c := make(chan os.Signal)
+		signal.Notify(c, os.Interrupt, syscall.SIGTERM)
+		go func() {
+			<-c
+			cleanup(pin, pinNumber)
+			os.Exit(1)
+		}()
+
+		pin.Output()
+
 	}
-
-	fmt.Println("creating channel")
-	c := make(chan os.Signal)
-	signal.Notify(c, os.Interrupt, syscall.SIGTERM)
-	go func() {
-		<-c
-		cleanup(pin, pinNumber)
-		os.Exit(1)
-	}()
-
-	pin.Output()
 	fmt.Println("Setting up http handlers")
+	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/switch", switchHandler)
 	http.HandleFunc("/pin", pinHandler)
-	http.ListenAndServe(":8080", nil)
+	http.ListenAndServe("0.0.0.0:8080", nil)
 }
 
 func switchHandler(w http.ResponseWriter, req *http.Request) {
-	pin.Toggle()
-	pinStatus := pin.Read()
-	var op string
-	fmt.Println("pin", pinStatus)
-	var status string
-	if pinStatus == 0 {
-		status = "<h1>OFF</h1>"
-		op = "off"
-	} else if pinStatus == 1 {
-		status = "<h1>ON</h1>"
-		op = "on"
-	}
+	req.ParseForm()
+	op := req.FormValue("op")
+	if testmode {
+		fmt.Println(op)
+	} else {
+		if op == "ON" {
+			fmt.Println("ON")
+			pin.Write(rpio.High)
+		} else if op == "OFF" {
+			fmt.Println("OFF")
+			pin.Write(rpio.Low)
+		}
 
-	if hostname != "zero" {
-		httpReq, _ := http.NewRequest("GET", "http://192.168.0.115:8080/pin", nil)
-		httpReq.Header.Set("op", op)
-		var client = http.Client{Timeout: time.Second * 10}
-		resp, err := client.Do(httpReq)
-		if err != nil {
-			fmt.Println(err)
-		} else {
-			fmt.Println(resp.StatusCode)
+		if hostname != "zero" {
+			httpReq, _ := http.NewRequest("GET", "http://192.168.0.115:8080/pin", nil)
+			httpReq.Header.Set("op", op)
+			var client = http.Client{Timeout: time.Second * 10}
+			resp, err := client.Do(httpReq)
+			if err != nil {
+				fmt.Println(err)
+			} else {
+				fmt.Println(resp.StatusCode)
+			}
 		}
 	}
-	fmt.Fprintf(w, status)
+
+	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func pinHandler(w http.ResponseWriter, req *http.Request) {

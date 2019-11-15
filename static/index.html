@@ -1,0 +1,30 @@
+<html>
+  <head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <title>Switch</title>
+  </head>
+  <body>
+    <div class="container">
+      <div class="row mt-1">
+        <div class="col-lg mt-1">
+          <h1>Lights Controller</h1>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md col-md-offset-3">
+          <form action="/switch?op=on" method="post" enctype="application/x-www-form-urlencoded">
+            <input class="btn btn-large btn-block btn-success black-background white" type="submit" value="ON"/>
+          </form>
+        </div>
+      </div>
+      <div class="row">
+        <div class="col-md col-md-offset-1">
+          <form action="/switch?op=off" method="post" enctype="application/x-www-form-urlencoded">
+            <input class="btn btn-large btn-block btn-danger" type="submit" value="OFF"/>
+          </form>
+        </div>
+      </div>
+    </div>
+  </body>
+  <link rel="stylesheet" href="/bootstrap.css">
+</html>
