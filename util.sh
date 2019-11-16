@@ -4,14 +4,24 @@ build() {
   GOOS=linux GOARCH=arm GOARM=5 go build -o lights main.go
 }
 
-deploy() {
+install() {
+  scp -pr ./static user@host:the/target/directory
   scp lights ${username}@${host}:
   scp lights.service ${username}@${host}:
-  ssh ${username}@${host} "sudo cp lights.service /etc/systemd/system/; rm lights.service; sudo systemctl enable lights.service; sudo systemctl enable lights.service; sudo systemctl start lights.service"
-  curl http://${host}:8080/switch
+  ssh ${username}@${host} "sudo mv lights.service /etc/systemd/system/; sudo systemctl enable lights.service; sudo systemctl start lights.service"
 }
 
-if [[ ${1} == 'build' ]]; then
+deploy() {
+  ssh ${username}@${host} "sudo systemctl stop lights.service"
+  scp lights ${username}@${host}:
+  scp -pr ./static ${username}@${host}:
+  ssh ${username}@${host} "sudo systemctl restart lights.service"
+}
+
+if [[ ${1} == 'install' ]]; then
+  build
+  install
+elif [[ ${1} == 'build' ]]; then
   build
 elif [[ ${1} == 'deploy' ]]; then
   username=${2}
@@ -21,5 +31,6 @@ elif [[ ${1} == 'deploy' ]]; then
     echo "./util.sh deploy pi raspberrypi.local"
     exit 1
   fi
+  build
   deploy
 fi

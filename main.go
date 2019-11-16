@@ -58,10 +58,10 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 	if testmode {
 		fmt.Println(op)
 	} else {
-		if op == "ON" {
+		if op == "on" {
 			fmt.Println("ON")
 			pin.Write(rpio.High)
-		} else if op == "OFF" {
+		} else if op == "off" {
 			fmt.Println("OFF")
 			pin.Write(rpio.Low)
 		}
@@ -78,8 +78,6 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 			}
 		}
 	}
-
-	http.Redirect(w, req, "/", http.StatusSeeOther)
 }
 
 func pinHandler(w http.ResponseWriter, req *http.Request) {
