@@ -2,32 +2,50 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
 	"net/http"
 	"os"
+	"os/exec"
 	"os/signal"
-	"strconv"
-	"strings"
+
+	"gopkg.in/yaml.v2"
+
+	// "os/exec"
+
 	"syscall"
 	"time"
 
 	"github.com/stianeikeland/go-rpio"
 )
 
+type config struct {
+	Server struct {
+		Role       string `yaml:"role"`
+		Pin        int    `yaml:"pin"`
+		FollowerIP string `yaml:"followerIP"`
+	} `yaml:"server"`
+}
+
 var pin rpio.Pin
 var pinNumber int
-var hostname string
 var testmode bool
+var cfg config
 
 func main() {
-	testmode = false
-	hostname, _ = os.Hostname()
-	data, _ := ioutil.ReadFile("./config")
-	s := strings.Trim(string(data), "\n")
-	pinNumber, _ := strconv.Atoi(s)
+	f, err := os.Open("config.yml")
+	if err != nil {
+		fmt.Println("unable to open config.yml", err)
+		os.Exit(1)
+	}
+	decoder := yaml.NewDecoder(f)
+	err = decoder.Decode(&cfg)
+	if err != nil {
+		fmt.Println("unable to decode config file", err)
+		os.Exit(1)
+	}
+	pinNumber = cfg.Server.Pin
 	pin = rpio.Pin(pinNumber)
 
-	err := rpio.Open()
+	err = rpio.Open()
 	if err != nil {
 		fmt.Println("unable to open gpio", err.Error())
 		fmt.Println("running in test mode")
@@ -49,6 +67,7 @@ func main() {
 	http.Handle("/", http.FileServer(http.Dir("./static")))
 	http.HandleFunc("/switch", switchHandler)
 	http.HandleFunc("/pin", pinHandler)
+	http.HandleFunc("/system", systemHandler)
 	http.ListenAndServe("0.0.0.0:8080", nil)
 }
 
@@ -66,15 +85,13 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 			pin.Write(rpio.Low)
 		}
 
-		if hostname != "zero" {
-			httpReq, _ := http.NewRequest("GET", "http://192.168.0.115:8080/pin", nil)
+		if cfg.Server.Role == "leader" {
+			httpReq, _ := http.NewRequest("GET", fmt.Sprintf("http://%s:8080/pin", cfg.Server.FollowerIP), nil)
 			httpReq.Header.Set("op", op)
 			var client = http.Client{Timeout: time.Second * 10}
-			resp, err := client.Do(httpReq)
+			_, err := client.Do(httpReq)
 			if err != nil {
 				fmt.Println(err)
-			} else {
-				fmt.Println(resp.StatusCode)
 			}
 		}
 	}
@@ -91,6 +108,26 @@ func pinHandler(w http.ResponseWriter, req *http.Request) {
 		status = "OFF"
 	}
 	fmt.Fprintf(w, status)
+}
+
+func systemHandler(w http.ResponseWriter, req *http.Request) {
+	op := req.FormValue("op")
+	var command string = ""
+	if op == "shutdown" {
+		command = "shutdown"
+		fmt.Fprintf(w, "shutting down")
+	} else if op == "reboot" {
+		command = "reboot"
+		fmt.Fprintf(w, "rebooting")
+	} else {
+		fmt.Fprintf(w, "command not recognized")
+	}
+	fmt.Printf("Received %s command\n", command)
+	if command != "" && !testmode {
+		if err := exec.Command("sudo", command, "now").Run(); err != nil {
+			fmt.Println("Failed to initiate command:", err)
+		}
+	}
 }
 
 func cleanup(pin rpio.Pin, pinNumber int) {

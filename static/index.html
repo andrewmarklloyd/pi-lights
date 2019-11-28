@@ -29,6 +29,26 @@
         </div>
       </div>
     </div>
+
+    <div class="container navbar navbar-fixed-bottom mt-5">
+      <div class="row mt-5">
+        <div class="col-md">
+          <form action="/system?op=shutdown" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to shutdown?');">
+            <button class="btn btn-warning" type="submit" value="shutdown">
+              <span class="display-4">Shutdown</span>
+            </button>
+          </form>
+        </div>
+        <div class="col-md col-md-offset-1">
+          <form action="/system?op=reboot" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to reboot?');">
+            <button class="btn btn-warning" type="submit" value="reboot">
+              <span class="display-4">Reboot</span>
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+
     <iframe style="display: none;" name="formDestination"></iframe>
   </body>
   <link rel="stylesheet" href="/bootstrap.css">

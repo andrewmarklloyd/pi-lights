@@ -1,0 +1,15 @@
+language: go
+go:
+  - 1.13.1
+script:
+  - ./util.sh build
+deploy:
+  provider: releases
+  api_key:
+    secure: key
+  file:
+    - lights
+  skip_cleanup: true
+  on:
+    repo: andrewmarklloyd/pi-lights
+    tags: true
