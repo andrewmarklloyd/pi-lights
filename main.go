@@ -119,7 +119,7 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 		command = "reboot"
 		fmt.Fprintf(w, "rebooting")
 	} else if op == "update" {
-		command = "./install/update.sh &"
+		command = "/home/pi/install/update.sh"
 		fmt.Fprintf(w, "updating software")
 	} else {
 		fmt.Fprintf(w, "command not recognized")

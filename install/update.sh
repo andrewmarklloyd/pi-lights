@@ -13,5 +13,7 @@ rm -f ./install/*
 rm -f ./static/*
 cp ${archive_path}/install/* install/
 cp ${archive_path}/static/* static/
-mv ${archive_path}/lights ./ &
-sudo systemctl stop lights.service &
+echo ${latestVersion} > /home/pi/static/version
+mv ${archive_path}/lights ./
+rm -rf ${archive_path}
+sudo systemctl restart lights.service
