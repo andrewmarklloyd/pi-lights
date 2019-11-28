@@ -5,18 +5,17 @@ build() {
 }
 
 install() {
-  scp -pr ./static ${username}@${host}:
+  scp -pr ./static/ ${username}@${host}:
   scp lights ${username}@${host}:
-  scp lights.service ${username}@${host}:
-  scp update.sh ${username}@${host}:
+  scp -r ./install/ ${username}@${host}:
   ssh ${username}@${host} "sudo mv lights.service /etc/systemd/system/; sudo systemctl enable lights.service; sudo systemctl start lights.service"
 }
 
 deploy() {
   ssh ${username}@${host} "sudo systemctl stop lights.service"
   scp lights ${username}@${host}:
-  scp update.sh ${username}@${host}:
-  scp -pr ./static ${username}@${host}:
+  scp ./install/ ${username}@${host}:
+  scp -pr ./static/ ${username}@${host}:
   ssh ${username}@${host} "sudo systemctl restart lights.service"
 }
 
