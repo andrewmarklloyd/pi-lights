@@ -1,7 +1,5 @@
 #!/bin/bash
 
-sudo systemctl stop lights.service
-
 archive_path="/tmp/pi-lights"
 mkdir -p ${archive_path}
 
@@ -15,7 +13,5 @@ rm -f ./install/*
 rm -f ./static/*
 cp ${archive_path}/install/* install/
 cp ${archive_path}/static/* static/
-
-rm -rf ${archive_path}
-
-sudo systemctl start lights.service
+mv ${archive_path}/lights ./ &
+sudo systemctl stop lights.service &

@@ -14,8 +14,8 @@ install() {
 deploy() {
   ssh ${username}@${host} "sudo systemctl stop lights.service"
   scp lights ${username}@${host}:
-  scp ./install/ ${username}@${host}:
-  scp -pr ./static/ ${username}@${host}:
+  scp -r ./install/ ${username}@${host}:
+  scp -r ./static/ ${username}@${host}:
   ssh ${username}@${host} "sudo systemctl restart lights.service"
 }
 

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bytes"
 	"fmt"
 	"net/http"
 	"os"
@@ -8,8 +9,6 @@ import (
 	"os/signal"
 
 	"gopkg.in/yaml.v2"
-
-	// "os/exec"
 
 	"syscall"
 	"time"
@@ -120,16 +119,22 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 		command = "reboot"
 		fmt.Fprintf(w, "rebooting")
 	} else if op == "update" {
-		command = "./install/update.sh"
+		command = "./install/update.sh &"
 		fmt.Fprintf(w, "updating software")
 	} else {
 		fmt.Fprintf(w, "command not recognized")
 	}
 	fmt.Printf("Running command: %s\n", command)
 	if command != "" && !testmode {
-		if err := exec.Command(command).Run(); err != nil {
+		cmd := exec.Command(command)
+		var out bytes.Buffer
+		cmd.Stdout = &out
+		err := cmd.Start()
+		if err != nil {
 			fmt.Println("Failed to initiate command:", err)
+			os.Exit(1)
 		}
+		fmt.Printf("Command: %q\n", out.String())
 	}
 }
 
