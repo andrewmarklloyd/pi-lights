@@ -46,13 +46,16 @@
             </button>
           </form>
         </div>
+        {{if eq .Version .LatestVersion}}
+        {{else}}
         <div class="col-md col-md-offset-1">
           <form action="/system?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to update to the newest version?');">
             <button class="btn btn-warning" type="submit" value="update">
-              <span class="display-4">Update</span>
+              <span class="display-4">Update to {{.LatestVersion}}</span>
             </button>
           </form>
         </div>
+        {{end}}
       </div>
       <div class="row mt-5">
         <span class="display-4">{{.Version}}</span>

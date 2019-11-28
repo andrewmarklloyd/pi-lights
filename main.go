@@ -28,7 +28,8 @@ type config struct {
 }
 
 type HomePageData struct {
-	Version string
+	Version       string
+	LatestVersion string
 }
 
 var pin rpio.Pin
@@ -74,7 +75,6 @@ func main() {
 		os.Exit(1)
 	}
 	fmt.Println("Setting up http handlers")
-	tmpl := template.Must(template.ParseFiles("./static/index.html"))
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path[1:]
 		d, _ := ioutil.ReadFile(string(path))
@@ -82,8 +82,14 @@ func main() {
 			w.Header().Add("Content Type", "text/css")
 			w.Write(d)
 		} else if path == "" {
+			latestVersion, err := ioutil.ReadFile("static/latestVersion")
+			if err != nil || len(latestVersion) == 0 {
+				latestVersion = version
+			}
+			tmpl := template.Must(template.ParseFiles("./static/index.html"))
 			data := HomePageData{
-				Version: string(version),
+				Version:       string(version),
+				LatestVersion: string(latestVersion),
 			}
 			tmpl.Execute(w, data)
 		}
