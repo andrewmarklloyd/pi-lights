@@ -6,7 +6,7 @@ script:
 deploy:
   provider: releases
   api_key:
-    secure: key
+    secure: sDREX1wTX7CpMRU4C8fJGmQrdJGaNYwbIL8vbOb6QsYgJow4Ju3SsCf57tQdFaaAilTQ77LsgH+70/MjZgFSIar5hyHuhGZJU/4Tgkw9WT6jhm0Nri9Rlfm0DhrnOWWgX2abWfAG3Y8806/c1WjIOCm1S94/lKPilxGPjLNvfj1w0CPmBMmX/Jrw+orQHbTNq/cNGEuGU+wx3w8oElPu19GwdTOpf+68oAwuMrugsiFmDfWFWlzpq7P0Yn7rCdo6YBlGjWbtdMSdAWH0ANhhRdKA6snLHls6d4KymWzCgnhGn+/92ST9Ah03qzdFxYTT1LchUxvw3jGa6/YKpSOmkT06dVXMK7wUSWAmnl+/T1SUa0mdk+OTwZynuW0Qj/L1/wN1xrgn+R1LCjd0AsYX6wD6NTfydiYsz8a2vkgVlSn7uhkjCMOJIo9r73Ub+L9ldBdJZEmJGRsyEaSZ5uO3fie8wrpDyJfqc1EdccXq1eLMbPtXpW2zig1+GxDXHKL03SkhYLCwrjSC6FC1aiYnOdRhWTEf0skuc/j/0jx6NYdmXaitoO/v+e3yXv74b3Yw+kLyc1FqZKnkPiMAux9V8TQogK6DRe+m1fB3+Ys6dsypixz81lmxFPwMSO9Hc6sDJjF95K4J9ZXwjBveolDIT7aa6a9LVqSG3NayH9HozeA=
   file:
     - lights
   skip_cleanup: true
