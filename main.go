@@ -3,10 +3,13 @@ package main
 import (
 	"bytes"
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"os"
 	"os/exec"
 	"os/signal"
+	"strings"
+	"text/template"
 
 	"gopkg.in/yaml.v2"
 
@@ -22,6 +25,10 @@ type config struct {
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
 	} `yaml:"server"`
+}
+
+type HomePageData struct {
+	Version string
 }
 
 var pin rpio.Pin
@@ -58,12 +65,29 @@ func main() {
 			cleanup(pin, pinNumber)
 			os.Exit(1)
 		}()
-
 		pin.Output()
+	}
 
+	version, err := ioutil.ReadFile("static/version")
+	if err != nil {
+		fmt.Println("unable to open verison", err)
+		os.Exit(1)
 	}
 	fmt.Println("Setting up http handlers")
-	http.Handle("/", http.FileServer(http.Dir("./static")))
+	tmpl := template.Must(template.ParseFiles("./static/index.html"))
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		path := r.URL.Path[1:]
+		d, _ := ioutil.ReadFile(string(path))
+		if strings.HasSuffix(path, ".css") {
+			w.Header().Add("Content Type", "text/css")
+			w.Write(d)
+		} else if path == "" {
+			data := HomePageData{
+				Version: string(version),
+			}
+			tmpl.Execute(w, data)
+		}
+	})
 	http.HandleFunc("/switch", switchHandler)
 	http.HandleFunc("/pin", pinHandler)
 	http.HandleFunc("/system", systemHandler)
