@@ -6,6 +6,9 @@ download_latest_release() {
   for url in ${assetUrls}; do
     curl -sLO $url
   done
+  chmod +x lights
 }
 
+sudo systemctl stop lights.service
 download_latest_release
+sudo systemctl start lights.service

@@ -119,12 +119,15 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 	} else if op == "reboot" {
 		command = "reboot"
 		fmt.Fprintf(w, "rebooting")
+	} else if op == "update" {
+		command = "./update.sh"
+		fmt.Fprintf(w, "updating software")
 	} else {
 		fmt.Fprintf(w, "command not recognized")
 	}
-	fmt.Printf("Received %s command\n", command)
+	fmt.Printf("Running command: %s\n", command)
 	if command != "" && !testmode {
-		if err := exec.Command("sudo", command, "now").Run(); err != nil {
+		if err := exec.Command(command).Run(); err != nil {
 			fmt.Println("Failed to initiate command:", err)
 		}
 	}
