@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -16,6 +17,7 @@ import (
 	"syscall"
 	"time"
 
+	"github.com/robfig/cron/v3"
 	"github.com/stianeikeland/go-rpio"
 )
 
@@ -25,6 +27,10 @@ type config struct {
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
 	} `yaml:"server"`
+}
+
+type AppInfo struct {
+	TagName string `json:"tag_name"`
 }
 
 type HomePageData struct {
@@ -74,6 +80,11 @@ func main() {
 		fmt.Println("unable to open verison", err)
 		os.Exit(1)
 	}
+
+	c := cron.New()
+	c.AddFunc("@every 45m", checkForUpdates)
+	c.Start()
+
 	fmt.Println("Setting up http handlers")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path[1:]
@@ -98,6 +109,23 @@ func main() {
 	http.HandleFunc("/pin", pinHandler)
 	http.HandleFunc("/system", systemHandler)
 	http.ListenAndServe("0.0.0.0:8080", nil)
+}
+
+func checkForUpdates() {
+	fmt.Println("Checking for updates")
+	resp, _ := http.Get("https://api.github.com/repos/andrewmarklloyd/pi-lights/releases/latest")
+	var info AppInfo
+	err := json.NewDecoder(resp.Body).Decode(&info)
+	if err != nil {
+		fmt.Println(err)
+	} else {
+		fmt.Println("Writing latestVersion to file")
+		versionInfo := []byte(info.TagName)
+		err = ioutil.WriteFile("./static/latestVersion", versionInfo, 0644)
+		if err != nil {
+			fmt.Println(err)
+		}
+	}
 }
 
 func switchHandler(w http.ResponseWriter, req *http.Request) {
