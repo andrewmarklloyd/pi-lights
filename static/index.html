@@ -47,6 +47,13 @@
           </form>
         </div>
         {{if eq .Version .LatestVersion}}
+        <div class="col-md col-md-offset-1">
+          <form action="/system?op=check-updates" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Confirm to check for updates.');">
+            <button class="btn btn-warning" type="submit" value="check-updates">
+              <span class="display-4">Check for updates</span>
+            </button>
+          </form>
+        </div>
         {{else}}
         <div class="col-md col-md-offset-1">
           <form action="/system?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to update to the newest version?');">
