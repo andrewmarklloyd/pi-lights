@@ -1,4 +1,7 @@
 # Pi Lights
+
+[![Build Status](https://travis-ci.org/andrewmarklloyd/pi-lights.svg?branch=master)](https://travis-ci.org/andrewmarklloyd/pi-lights)
+
 Small web server running on a Raspberry Pi that allows HTTP GET requests to trigger a 5v relay connected to a string of Christmas lights.
 
 ### Build and Deploy
