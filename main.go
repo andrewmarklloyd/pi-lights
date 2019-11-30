@@ -181,8 +181,7 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "updating software")
 	} else if op == "check-updates" {
 		checkForUpdates()
-		time.Sleep(2000 * time.Millisecond)
-		http.Redirect(w, req, "http://localhost:8080/test", http.StatusTemporaryRedirect)
+		fmt.Fprintf(w, "checking for updates")
 	} else {
 		fmt.Fprintf(w, "command not recognized")
 	}
