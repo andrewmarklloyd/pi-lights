@@ -189,7 +189,7 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "command not recognized")
 	}
 	fmt.Printf("Running command: %s\n", command)
-	if len(command) != 0 && !testmode {
+	if command != "" && !testmode {
 		cmd := exec.Command(command, args...)
 		var out bytes.Buffer
 		cmd.Stdout = &out
@@ -198,7 +198,7 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 			fmt.Println("Failed to initiate command:", err)
 			os.Exit(1)
 		}
-		fmt.Printf("Command: %q\n", out.String())
+		fmt.Printf("Command output: %q\n", out.String())
 	}
 }
 
