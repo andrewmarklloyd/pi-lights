@@ -142,7 +142,7 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 			pin.Write(rpio.Low)
 		}
 
-		if cfg.Server.Role == "leader" {
+		if cfg.Server.Role == "leader" && cfg.Server.FollowerIP != "" {
 			httpReq, _ := http.NewRequest("GET", fmt.Sprintf("http://%s:8080/pin", cfg.Server.FollowerIP), nil)
 			httpReq.Header.Set("op", op)
 			var client = http.Client{Timeout: time.Second * 10}
