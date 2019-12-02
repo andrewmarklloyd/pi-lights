@@ -169,12 +169,15 @@ func pinHandler(w http.ResponseWriter, req *http.Request) {
 
 func systemHandler(w http.ResponseWriter, req *http.Request) {
 	op := req.FormValue("op")
+	var args []string = []string{}
 	var command string = ""
 	if op == "shutdown" {
-		command = "shutdown"
+		command = "sudo"
+		args = []string{"shutdown", "now"}
 		fmt.Fprintf(w, "shutting down")
 	} else if op == "reboot" {
-		command = "reboot"
+		command = "sudo"
+		args = []string{"reboot", "now"}
 		fmt.Fprintf(w, "rebooting")
 	} else if op == "update" {
 		command = "/home/pi/install/update.sh"
@@ -186,8 +189,8 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprintf(w, "command not recognized")
 	}
 	fmt.Printf("Running command: %s\n", command)
-	if command != "" && !testmode {
-		cmd := exec.Command(command)
+	if len(command) != 0 && !testmode {
+		cmd := exec.Command(command, args...)
 		var out bytes.Buffer
 		cmd.Stdout = &out
 		err := cmd.Start()
