@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"io/ioutil"
 	"net/http"
 	"os"
@@ -12,13 +13,13 @@ import (
 	"strings"
 	"text/template"
 
-	"gopkg.in/yaml.v2"
-
 	"syscall"
 	"time"
 
 	"github.com/robfig/cron/v3"
 	"github.com/stianeikeland/go-rpio"
+	"github.com/spf13/viper"
+	yaml "gopkg.in/yaml.v2"
 )
 
 type config struct {
@@ -27,6 +28,15 @@ type config struct {
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
 	} `yaml:"server"`
+
+	Schedule Schedule `yaml:"schedule"`
+}
+
+type Schedule struct {
+	OnHour     string `yaml:"onHour"`
+	OnMinutes  string `yaml:"onMinutes"`
+	OffHour    string `yaml:"offHour"`
+	OffMinutes string `yaml:"offMinutes"`
 }
 
 type AppInfo struct {
@@ -42,23 +52,14 @@ var pin rpio.Pin
 var pinNumber int
 var testmode bool
 var cfg config
+var cronLib *cron.Cron
 
 func main() {
-	f, err := os.Open("config.yml")
-	if err != nil {
-		fmt.Println("unable to open config.yml", err)
-		os.Exit(1)
-	}
-	decoder := yaml.NewDecoder(f)
-	err = decoder.Decode(&cfg)
-	if err != nil {
-		fmt.Println("unable to decode config file", err)
-		os.Exit(1)
-	}
+	cfg := readConfig()
 	pinNumber = cfg.Server.Pin
 	pin = rpio.Pin(pinNumber)
 
-	err = rpio.Open()
+	err := rpio.Open()
 	if err != nil {
 		fmt.Println("unable to open gpio", err.Error())
 		fmt.Println("running in test mode")
@@ -81,9 +82,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	c := cron.New()
-	c.AddFunc("@every 45m", checkForUpdates)
-	c.Start()
+	configureCron(cfg.Schedule)
 
 	fmt.Println("Setting up http handlers")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
@@ -108,6 +107,7 @@ func main() {
 	http.HandleFunc("/switch", switchHandler)
 	http.HandleFunc("/pin", pinHandler)
 	http.HandleFunc("/system", systemHandler)
+	http.HandleFunc("/schedule", scheduleHandler)
 	http.ListenAndServe("0.0.0.0:8080", nil)
 }
 
@@ -126,6 +126,51 @@ func checkForUpdates() {
 			fmt.Println(err)
 		}
 	}
+}
+
+func configureCron(schedule Schedule) {
+	if cronLib != nil {
+		numEntries := len(cronLib.Entries())
+		for i := 0; i < numEntries; i++ {
+			cronLib.Remove(cronLib.Entries()[0].ID)
+		}
+	} else {
+		cronLib = cron.New()
+	}
+	cronLib.AddFunc("@every 45m", checkForUpdates)
+
+	if schedule.OnHour != "" && schedule.OffHour != "" && schedule.OnMinutes != "" && schedule.OffMinutes != "" {
+		onTime := fmt.Sprintf("%s %s * * *", schedule.OnMinutes, schedule.OnHour)
+		cronLib.AddFunc(onTime, func() {
+			fmt.Println("ON")
+			// pin.Write(rpio.High)
+		})
+		offTime := fmt.Sprintf("%s %s * * *", schedule.OffMinutes, schedule.OffHour)
+		cronLib.AddFunc(offTime, func() {
+			fmt.Println("OFF")
+			// pin.Write(rpio.Low)
+		})
+	}
+	cronLib.Start()
+}
+
+func scheduleHandler(w http.ResponseWriter, req *http.Request) {
+	req.ParseForm()
+	onHour := req.FormValue("onHour")
+	onMinutes := req.FormValue("onMinutes")
+	offHour := req.FormValue("offHour")
+	offMinutes := req.FormValue("offMinutes")
+
+	cfg := readConfig()
+	cfg.Schedule = Schedule{
+		onHour,
+		onMinutes,
+		offHour,
+		offMinutes,
+	}
+	writeConfig(cfg)
+	configureCron(cfg.Schedule)
+	fmt.Fprintf(w, "success")
 }
 
 func switchHandler(w http.ResponseWriter, req *http.Request) {
@@ -206,4 +251,39 @@ func cleanup(pin rpio.Pin, pinNumber int) {
 	fmt.Println("Cleaning up pin", pinNumber)
 	pin.Write(rpio.Low)
 	rpio.Close()
+}
+
+func writeConfig(cfg config) {
+	d, err := yaml.Marshal(&cfg)
+	if err != nil {
+		log.Fatalf("error: %v", err)
+	}
+	err = ioutil.WriteFile("config.yml", d, 0644)
+	if err != nil {
+		log.Fatal(err)
+	}
+}
+
+func readConfig() config {
+	viper.SetConfigName("config")
+	viper.AddConfigPath(currentdir())
+	err := viper.ReadInConfig()
+	if err != nil {
+		fmt.Println(err)
+	}
+	cfg := config{}
+	err = viper.Unmarshal(&cfg)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return cfg
+}
+
+func currentdir() (cwd string) {
+	cwd, err := os.Getwd()
+	if err != nil {
+		fmt.Println(err)
+	}
+
+	return cwd
 }
