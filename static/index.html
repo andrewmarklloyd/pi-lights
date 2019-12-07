@@ -2,6 +2,7 @@
   <head>
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <title>Switch</title>
+    <link rel="stylesheet" href="/static/bootstrap.css">
   </head>
   <body class="bg-dark">
     <div class="container">
@@ -28,8 +29,30 @@
           </form>
         </div>
       </div>
-    </div>
+      <div class="mt-4">
+        <form action="/schedule?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return scheduleSubmit();">
+          <div class="form-group input-group input-group-lg">
+            <label class="text-white" style="font-size: 30px;" for="onTime">On<br>Time</label>
+            <input id="onTime" type="time" name="onTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OnHour }}:{{ .Schedule.OnMinutes }}" style="font-size: 50px;">
 
+            <label class="text-white" style="font-size: 30px;" for="offTime">Off<br>Time</label>
+            <input id="offTime"  type="time" name="offTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OffHour }}:{{ .Schedule.OffMinutes }}" style="font-size: 50px;">
+          </div>
+          <div class="input-group-append">
+            <button class="btn bg-dark text-light btn-outline-light" type="submit" value="reboot">
+              <span class="display-4">Submit</span>
+            </button>
+          </div>
+        </form>
+        <form action="/schedule?op=clear" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return clearSubmit();">
+          <button class="btn bg-dark text-light btn-outline-light" type="submit" value="clear">
+            <span class="">Clear Schedule</span>
+          </button>
+        </form>
+
+
+      </div>
+    </div>
     <div class="container navbar navbar-fixed-bottom mt-5">
       <div class="row mt-5">
         <div class="col-md">
@@ -47,13 +70,6 @@
           </form>
         </div>
         {{if eq .Version .LatestVersion}}
-        <div class="col-md col-md-offset-1">
-          <form action="/system?op=check-updates" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Confirm to check for updates.');">
-            <button class="btn btn-warning" type="submit" value="check-updates">
-              <span class="display-4">Check for updates</span>
-            </button>
-          </form>
-        </div>
         {{else}}
         <div class="col-md col-md-offset-1">
           <form action="/system?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to update to the newest version?');">
@@ -68,9 +84,7 @@
         <span class="display-4">{{.Version}}</span>
       </div>
     </div>
-
-
+    <script type="text/javascript" src="static/app.js"></script>
     <iframe style="display: none;" name="formDestination"></iframe>
   </body>
-  <link rel="stylesheet" href="/static/bootstrap.css">
 </html>

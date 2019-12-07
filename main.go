@@ -27,6 +27,7 @@ type config struct {
 		Role       string `yaml:"role"`
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
+		Debug      bool `yaml:"debug"`
 	} `yaml:"server"`
 
 	Schedule Schedule `yaml:"schedule"`
@@ -46,6 +47,8 @@ type AppInfo struct {
 type HomePageData struct {
 	Version       string
 	LatestVersion string
+	Debug         bool
+	Schedule      Schedule
 }
 
 var pin rpio.Pin
@@ -87,21 +90,29 @@ func main() {
 	fmt.Println("Setting up http handlers")
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
 		path := r.URL.Path[1:]
-		d, _ := ioutil.ReadFile(string(path))
-		if strings.HasSuffix(path, ".css") {
-			w.Header().Add("Content Type", "text/css")
-			w.Write(d)
-		} else if path == "" {
+
+		if path == "" {
 			latestVersion, err := ioutil.ReadFile("static/latestVersion")
 			if err != nil || len(latestVersion) == 0 {
 				latestVersion = version
 			}
+			cfg = readConfig()
 			tmpl := template.Must(template.ParseFiles("./static/index.html"))
 			data := HomePageData{
 				Version:       string(version),
 				LatestVersion: string(latestVersion),
+				Debug: cfg.Server.Debug,
+				Schedule: cfg.Schedule,
 			}
 			tmpl.Execute(w, data)
+		} else  {
+			if fileExists(path) {
+				d, _ := ioutil.ReadFile(string(path))
+				w.Write(d)
+			} else {
+				// fmt.Println(path)
+				http.NotFound(w, r)
+			}
 		}
 	})
 	http.HandleFunc("/switch", switchHandler)
@@ -143,12 +154,16 @@ func configureCron(schedule Schedule) {
 		onTime := fmt.Sprintf("%s %s * * *", schedule.OnMinutes, schedule.OnHour)
 		cronLib.AddFunc(onTime, func() {
 			fmt.Println("ON")
-			// pin.Write(rpio.High)
+			if !testmode {
+				pin.Write(rpio.High)
+			}
 		})
 		offTime := fmt.Sprintf("%s %s * * *", schedule.OffMinutes, schedule.OffHour)
 		cronLib.AddFunc(offTime, func() {
 			fmt.Println("OFF")
-			// pin.Write(rpio.Low)
+			if !testmode {
+				pin.Write(rpio.Low)
+			}
 		})
 	}
 	cronLib.Start()
@@ -156,21 +171,31 @@ func configureCron(schedule Schedule) {
 
 func scheduleHandler(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
-	onHour := req.FormValue("onHour")
-	onMinutes := req.FormValue("onMinutes")
-	offHour := req.FormValue("offHour")
-	offMinutes := req.FormValue("offMinutes")
-
-	cfg := readConfig()
-	cfg.Schedule = Schedule{
-		onHour,
-		onMinutes,
-		offHour,
-		offMinutes,
+	op := req.FormValue("op")
+	if op == "clear" {
+		cfg := readConfig()
+		cfg.Schedule = Schedule{}
+		writeConfig(cfg)
+		configureCron(cfg.Schedule)
+	} else if op == "update" {
+		onTime := req.FormValue("onTime")
+		offTime := req.FormValue("offTime")
+		if onTime == "" || offTime == "" {
+			fmt.Fprintf(w, "error")
+		} else {
+			cfg := readConfig()
+			cfg.Schedule = Schedule{
+				strings.Split(onTime, ":")[0],
+				strings.Split(onTime, ":")[1],
+				strings.Split(offTime, ":")[0],
+				strings.Split(offTime, ":")[1],
+			}
+			writeConfig(cfg)
+			configureCron(cfg.Schedule)
+		}
+	} else {
+		fmt.Fprintf(w, "error")
 	}
-	writeConfig(cfg)
-	configureCron(cfg.Schedule)
-	fmt.Fprintf(w, "success")
 }
 
 func switchHandler(w http.ResponseWriter, req *http.Request) {
@@ -284,6 +309,13 @@ func currentdir() (cwd string) {
 	if err != nil {
 		fmt.Println(err)
 	}
-
 	return cwd
+}
+
+func fileExists(filename string) bool {
+  info, err := os.Stat(filename)
+  if os.IsNotExist(err) {
+      return false
+  }
+  return !info.IsDir()
 }
