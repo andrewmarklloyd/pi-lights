@@ -18,13 +18,13 @@ mkdir -p ${install_dir}/install/
 mkdir -p ${install_dir}/static/
 cp ${archive_path}/install/* ${install_dir}/install/
 cp ${archive_path}/static/* ${install_dir}/static/
-mv ${install_dir}/default.config.yml ${install_dir}/config.yml
+mv ${archive_path}/default.config.yml ${install_dir}/config.yml
 
 echo -n ${latestVersion} > ${install_dir}/static/version
 echo -n ${latestVersion} > ${install_dir}/static/latestVersion
 mv ${archive_path}/lights ${install_dir}/
+sudo mv ${archive_path}/lights.service /etc/systemd/system/
 rm -rf ${archive_path}
 
-sudo mv ${install_dir}/lights.service /etc/systemd/system/
 sudo systemctl enable lights.service
 sudo systemctl start lights.service
