@@ -25,6 +25,6 @@ echo -n ${latestVersion} > ${install_dir}/static/latestVersion
 mv ${archive_path}/lights ${install_dir}/
 rm -rf ${archive_path}
 
-# sudo mv lights.service /etc/systemd/system/
-# sudo systemctl enable lights.service
-# sudo systemctl start lights.service
+sudo mv ${install_dir}/lights.service /etc/systemd/system/
+sudo systemctl enable lights.service
+sudo systemctl start lights.service
