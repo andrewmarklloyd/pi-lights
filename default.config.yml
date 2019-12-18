@@ -1,0 +1,9 @@
+server:
+  role: leader
+  pin: 18
+  debug: false
+schedule:
+  onHour: ""
+  onMinutes: ""
+  offHour: ""
+  offMinutes: ""

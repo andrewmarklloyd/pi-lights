@@ -81,7 +81,7 @@ func main() {
 
 	version, err := ioutil.ReadFile("static/version")
 	if err != nil {
-		fmt.Println("unable to open verison", err)
+		fmt.Println("unable to open version", err)
 		os.Exit(1)
 	}
 
@@ -290,11 +290,12 @@ func writeConfig(cfg config) {
 }
 
 func readConfig() config {
-	viper.SetConfigName("config")
+	viper.SetConfigName("config.yml")
 	viper.AddConfigPath(currentdir())
 	err := viper.ReadInConfig()
 	if err != nil {
 		fmt.Println(err)
+		os.Exit(1)
 	}
 	cfg := config{}
 	err = viper.Unmarshal(&cfg)
