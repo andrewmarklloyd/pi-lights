@@ -1,5 +1,7 @@
 #!/bin/bash
 
+sudo apt-get update
+sudo apt-get install jq -y
 
 archive_path="/tmp/pi-lights"
 install_dir="/home/pi"

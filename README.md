@@ -4,12 +4,19 @@
 
 Small web server running on a Raspberry Pi that allows HTTP GET requests to trigger a 5v relay connected to a string of Christmas lights.
 
-### Build and Deploy
-Requires Go 1.13.1 to build the project. The `util.sh` script will build and copy the binary to a remote Raspberry Pi.
-```
-# build an executable
-./util.sh build
 
-# copy executable and systemd config, start service
-./util.sh pi raspberrypi.local
+### One Line Install
+To install on a Raspberry Pi with a single line command, run the following:
+```
+bash <(curl -s -H 'Cache-Control: no-cache' https://raw.githubusercontent.com/andrewmarklloyd/pi-lights/master/install/install.sh)
+```
+
+### Developing Locally
+Requires Go 1.13.1 to build the project.
+```
+# run the program
+go run main.go
+
+# build an executable
+go build -o lights main.go
 ```
