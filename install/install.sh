@@ -2,7 +2,7 @@
 
 
 archive_path="/tmp/pi-lights"
-install_dir="/tmp/home/pi"
+install_dir="/home/pi"
 mkdir -p ${archive_path}
 
 latestVersion=$(curl --silent "https://api.github.com/repos/andrewmarklloyd/pi-lights/releases/latest" | grep '"tag_name":' | sed -E 's/.*"([^"]+)".*/\1/')
