@@ -23,7 +23,7 @@ mv ${archive_path}/default.config.yml ${install_dir}/config.yml
 echo -n ${latestVersion} > ${install_dir}/static/version
 echo -n ${latestVersion} > ${install_dir}/static/latestVersion
 mv ${archive_path}/lights ${install_dir}/
-sudo mv ${archive_path}/lights.service /etc/systemd/system/
+sudo mv ${archive_path}/install/lights.service /etc/systemd/system/
 rm -rf ${archive_path}
 
 sudo systemctl enable lights.service
