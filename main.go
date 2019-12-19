@@ -4,8 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"log"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"os/exec"
@@ -17,8 +17,8 @@ import (
 	"time"
 
 	"github.com/robfig/cron/v3"
-	"github.com/stianeikeland/go-rpio"
 	"github.com/spf13/viper"
+	"github.com/stianeikeland/go-rpio"
 	yaml "gopkg.in/yaml.v2"
 )
 
@@ -27,7 +27,7 @@ type config struct {
 		Role       string `yaml:"role"`
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
-		Debug      bool `yaml:"debug"`
+		Debug      bool   `yaml:"debug"`
 	} `yaml:"server"`
 
 	Schedule Schedule `yaml:"schedule"`
@@ -58,7 +58,7 @@ var cfg config
 var cronLib *cron.Cron
 
 func main() {
-	cfg := readConfig()
+	cfg = readConfig()
 	pinNumber = cfg.Server.Pin
 	pin = rpio.Pin(pinNumber)
 
@@ -101,11 +101,11 @@ func main() {
 			data := HomePageData{
 				Version:       string(version),
 				LatestVersion: string(latestVersion),
-				Debug: cfg.Server.Debug,
-				Schedule: cfg.Schedule,
+				Debug:         cfg.Server.Debug,
+				Schedule:      cfg.Schedule,
 			}
 			tmpl.Execute(w, data)
-		} else  {
+		} else {
 			if fileExists(path) {
 				d, _ := ioutil.ReadFile(string(path))
 				w.Write(d)
@@ -153,17 +153,11 @@ func configureCron(schedule Schedule) {
 	if schedule.OnHour != "" && schedule.OffHour != "" && schedule.OnMinutes != "" && schedule.OffMinutes != "" {
 		onTime := fmt.Sprintf("%s %s * * *", schedule.OnMinutes, schedule.OnHour)
 		cronLib.AddFunc(onTime, func() {
-			fmt.Println("ON")
-			if !testmode {
-				pin.Write(rpio.High)
-			}
+			switchLight("on")
 		})
 		offTime := fmt.Sprintf("%s %s * * *", schedule.OffMinutes, schedule.OffHour)
 		cronLib.AddFunc(offTime, func() {
-			fmt.Println("OFF")
-			if !testmode {
-				pin.Write(rpio.Low)
-			}
+			switchLight("off")
 		})
 	}
 	cronLib.Start()
@@ -201,6 +195,10 @@ func scheduleHandler(w http.ResponseWriter, req *http.Request) {
 func switchHandler(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	op := req.FormValue("op")
+	switchLight(op)
+}
+
+func switchLight(op string) {
 	if testmode {
 		fmt.Println(op)
 	} else {
@@ -211,7 +209,6 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 			fmt.Println("OFF")
 			pin.Write(rpio.Low)
 		}
-
 		if cfg.Server.Role == "leader" && cfg.Server.FollowerIP != "" {
 			httpReq, _ := http.NewRequest("GET", fmt.Sprintf("http://%s:8080/pin", cfg.Server.FollowerIP), nil)
 			httpReq.Header.Set("op", op)
@@ -226,15 +223,8 @@ func switchHandler(w http.ResponseWriter, req *http.Request) {
 
 func pinHandler(w http.ResponseWriter, req *http.Request) {
 	op := req.Header.Get("op")
-	var status string
-	if op == "on" {
-		pin.Write(rpio.High)
-		status = "ON"
-	} else if op == "off" {
-		pin.Write(rpio.Low)
-		status = "OFF"
-	}
-	fmt.Fprintf(w, status)
+	switchLight(op)
+	fmt.Fprintf(w, op)
 }
 
 func systemHandler(w http.ResponseWriter, req *http.Request) {
@@ -314,9 +304,9 @@ func currentdir() (cwd string) {
 }
 
 func fileExists(filename string) bool {
-  info, err := os.Stat(filename)
-  if os.IsNotExist(err) {
-      return false
-  }
-  return !info.IsDir()
+	info, err := os.Stat(filename)
+	if os.IsNotExist(err) {
+		return false
+	}
+	return !info.IsDir()
 }
