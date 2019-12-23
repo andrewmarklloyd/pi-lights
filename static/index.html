@@ -8,52 +8,55 @@
     <div class="container">
       <div class="row mt-1">
         <div class="col-lg mt-1">
-          <h1 class="display-1 text-center text-light"><b>Pi Lights</b></h1>
+          <h1 id="title" class="display-1 text-center text-light"><b>Pi Lights</b></h1>
+          <h4 id="subtitle" class="display-4 text-center text-light"></h4>
         </div>
       </div>
-      <div class="row">
-        <div class="col-md col-md-offset-3" style="height: 300px">
-          <form action="/switch?op=on" method="post" enctype="application/x-www-form-urlencoded" target="formDestination">
-            <button class="btn btn-large btn-block btn-success h-100" type="submit" value="ON">
-              <span class="display-2">ON</span>
+      <div id="dots" class="text-center text-light display-1">
+      </div>
+      <div id="app">
+        <div class="row">
+          <div class="col-md col-md-offset-3" style="height: 300px">
+            <form action="/switch?op=on" method="post" enctype="application/x-www-form-urlencoded" target="formDestination">
+              <button class="btn btn-large btn-block btn-success h-100" type="submit" value="ON">
+                <span class="display-2">ON</span>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="row mt-4">
+          <div class="col-md col-md-offset-1" style="height: 300px">
+            <form action="/switch?op=off" method="post" enctype="application/x-www-form-urlencoded" target="formDestination">
+              <button class="btn btn-large btn-block btn-danger h-100" type="submit" value="OFF">
+                <span class="display-2">OFF</span>
+              </button>
+            </form>
+          </div>
+        </div>
+        <div class="mt-4">
+          <form action="/schedule?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return scheduleSubmit();">
+            <div class="form-group input-group input-group-lg">
+              <label class="text-white" style="font-size: 30px;" for="onTime">On<br>Time</label>
+              <input id="onTime" type="time" name="onTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OnHour }}:{{ .Schedule.OnMinutes }}" style="font-size: 50px;">
+
+              <label class="text-white" style="font-size: 30px;" for="offTime">Off<br>Time</label>
+              <input id="offTime"  type="time" name="offTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OffHour }}:{{ .Schedule.OffMinutes }}" style="font-size: 50px;">
+            </div>
+            <div class="input-group-append">
+              <button class="btn bg-dark text-light btn-outline-light" type="submit" value="reboot">
+                <span class="display-4">Submit</span>
+              </button>
+            </div>
+          </form>
+          <form action="/schedule?op=clear" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return clearSubmit();">
+            <button class="btn bg-dark text-light btn-outline-light" type="submit" value="clear">
+              <span class="">Clear Schedule</span>
             </button>
           </form>
         </div>
-      </div>
-      <div class="row mt-4">
-        <div class="col-md col-md-offset-1" style="height: 300px">
-          <form action="/switch?op=off" method="post" enctype="application/x-www-form-urlencoded" target="formDestination">
-            <button class="btn btn-large btn-block btn-danger h-100" type="submit" value="OFF">
-              <span class="display-2">OFF</span>
-            </button>
-          </form>
-        </div>
-      </div>
-      <div class="mt-4">
-        <form action="/schedule?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return scheduleSubmit();">
-          <div class="form-group input-group input-group-lg">
-            <label class="text-white" style="font-size: 30px;" for="onTime">On<br>Time</label>
-            <input id="onTime" type="time" name="onTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OnHour }}:{{ .Schedule.OnMinutes }}" style="font-size: 50px;">
-
-            <label class="text-white" style="font-size: 30px;" for="offTime">Off<br>Time</label>
-            <input id="offTime"  type="time" name="offTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OffHour }}:{{ .Schedule.OffMinutes }}" style="font-size: 50px;">
-          </div>
-          <div class="input-group-append">
-            <button class="btn bg-dark text-light btn-outline-light" type="submit" value="reboot">
-              <span class="display-4">Submit</span>
-            </button>
-          </div>
-        </form>
-        <form action="/schedule?op=clear" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return clearSubmit();">
-          <button class="btn bg-dark text-light btn-outline-light" type="submit" value="clear">
-            <span class="">Clear Schedule</span>
-          </button>
-        </form>
-
-
       </div>
     </div>
-    <div class="container navbar navbar-fixed-bottom mt-5">
+    <div id="navbar" class="container navbar navbar-fixed-bottom mt-5">
       <div class="row mt-5">
         <div class="col-md">
           <form action="/system?op=shutdown" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to shutdown?');">
@@ -81,7 +84,7 @@
           {{end}}
         {{else}}
         <div class="col-md col-md-offset-1">
-          <form action="/system?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return confirm('Are you sure you want to update to the newest version?');">
+          <form action="/system?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return systemUpdate();">
             <button class="btn btn-warning" type="submit" value="update">
               <span class="display-4">Update to {{.LatestVersion}}</span>
             </button>
@@ -94,6 +97,7 @@
       </div>
     </div>
     <script type="text/javascript" src="static/app.js"></script>
+    <script type="text/javascript" src="static/jquery.js"></script>
     <iframe style="display: none;" name="formDestination"></iframe>
   </body>
 </html>
