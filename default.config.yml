@@ -1,7 +1,9 @@
 server:
   role: leader
   pin: 18
+  followerIP: ""
   debug: false
+  autoUpdate: true
 schedule:
   onHour: ""
   onMinutes: ""

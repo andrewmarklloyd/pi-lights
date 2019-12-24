@@ -28,6 +28,7 @@ type config struct {
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
 		Debug      bool   `yaml:"debug"`
+		AutoUpdate bool   `yaml:"autoUpdate`
 	} `yaml:"server"`
 
 	Schedule Schedule `yaml:"schedule"`
@@ -124,17 +125,37 @@ func main() {
 
 func checkForUpdates() {
 	fmt.Println("Checking for updates")
-	resp, _ := http.Get("https://api.github.com/repos/andrewmarklloyd/pi-lights/releases/latest")
+	resp, err := http.Get("https://api.github.com/repos/andrewmarklloyd/pi-lights/releases/latest")
+	if err != nil {
+		fmt.Println(err)
+	}
 	var info AppInfo
-	err := json.NewDecoder(resp.Body).Decode(&info)
+	err = json.NewDecoder(resp.Body).Decode(&info)
 	if err != nil {
 		fmt.Println(err)
 	} else {
 		fmt.Println("Writing latestVersion to file")
-		versionInfo := []byte(info.TagName)
-		err = ioutil.WriteFile("./static/latestVersion", versionInfo, 0644)
+		latestVersion := []byte(info.TagName)
+		err = ioutil.WriteFile("./static/latestVersion", latestVersion, 0644)
 		if err != nil {
 			fmt.Println(err)
+		}
+
+		version, err := ioutil.ReadFile("static/version")
+		if err != nil {
+			fmt.Println("unable to open version", err)
+			os.Exit(1)
+		}
+		if info.TagName != string(version) && cfg.Server.AutoUpdate && !testmode {
+			fmt.Println("Updating software version")
+			cmd := exec.Command("/home/pi/install/update.sh")
+			var out bytes.Buffer
+			cmd.Stdout = &out
+			err := cmd.Start()
+			if err != nil {
+				fmt.Println("Failed to initiate command:", err)
+				os.Exit(1)
+			}
 		}
 	}
 }
