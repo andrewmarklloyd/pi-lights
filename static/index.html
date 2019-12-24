@@ -72,6 +72,23 @@
             </button>
           </form>
         </div>
+        {{if .AutoUpdate}}
+        <div class="col-md col-md-offset-1">
+          <form action="/system?op=auto-update-off" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return autoUpdates();">
+            <button class="btn btn-warning" type="submit" value="update">
+              <span class="">Disable Auto Updates</span>
+            </button>
+          </form>
+        </div>
+        {{else}}
+        <div class="col-md col-md-offset-1">
+          <form action="/system?op=auto-update-on" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return autoUpdates();">
+            <button class="btn btn-warning" type="submit" value="update">
+              <span class="">Enable Auto Updates</span>
+            </button>
+          </form>
+        </div>
+        {{end}}
         {{if eq .Version .LatestVersion}}
           {{if .Debug}}
           <div class="col-md col-md-offset-1">

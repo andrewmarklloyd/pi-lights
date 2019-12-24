@@ -50,6 +50,7 @@ type HomePageData struct {
 	LatestVersion string
 	Debug         bool
 	Schedule      Schedule
+	AutoUpdate    bool
 }
 
 var pin rpio.Pin
@@ -104,6 +105,7 @@ func main() {
 				LatestVersion: string(latestVersion),
 				Debug:         cfg.Server.Debug,
 				Schedule:      cfg.Schedule,
+				AutoUpdate:    cfg.Server.AutoUpdate,
 			}
 			tmpl.Execute(w, data)
 		} else {
@@ -120,6 +122,7 @@ func main() {
 	http.HandleFunc("/pin", pinHandler)
 	http.HandleFunc("/system", systemHandler)
 	http.HandleFunc("/schedule", scheduleHandler)
+	http.HandleFunc("/config", configHandler)
 	http.ListenAndServe("0.0.0.0:8080", nil)
 }
 
@@ -182,6 +185,17 @@ func configureCron(schedule Schedule) {
 		})
 	}
 	cronLib.Start()
+}
+
+func configHandler(w http.ResponseWriter, req *http.Request) {
+
+	out, err := json.Marshal(readConfig())
+	if err != nil {
+		fmt.Println(err)
+		fmt.Fprintf(w, "error occurred")
+	} else {
+		fmt.Fprintf(w, string(out))
+	}
 }
 
 func scheduleHandler(w http.ResponseWriter, req *http.Request) {
@@ -266,6 +280,16 @@ func systemHandler(w http.ResponseWriter, req *http.Request) {
 	} else if op == "check-updates" {
 		checkForUpdates()
 		fmt.Fprintf(w, "checking for updates")
+	} else if op == "auto-update-on" {
+		cfg := readConfig()
+		cfg.Server.AutoUpdate = true
+		writeConfig(cfg)
+		fmt.Fprintf(w, "enabled auto updates")
+	} else if op == "auto-update-off" {
+		cfg := readConfig()
+		cfg.Server.AutoUpdate = false
+		writeConfig(cfg)
+		fmt.Fprintf(w, "disabled auto updates")
 	} else {
 		fmt.Fprintf(w, "command not recognized")
 	}

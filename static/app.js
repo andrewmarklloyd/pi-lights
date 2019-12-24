@@ -8,6 +8,12 @@ function scheduleSubmit() {
   return true
 }
 
+function autoUpdates() {
+  setTimeout(() => {
+    location.reload()
+  }, 500)
+}
+
 function clearSubmit() {
   document.getElementById("onTime").value = ""
   document.getElementById("offTime").value = ""
