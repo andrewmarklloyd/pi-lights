@@ -174,11 +174,13 @@ func configureCron(schedule Schedule) {
 	}
 	cronLib.AddFunc("@every 45m", checkForUpdates)
 
-	if schedule.OnHour != "" && schedule.OffHour != "" && schedule.OnMinutes != "" && schedule.OffMinutes != "" {
+	if schedule.OnHour != "" && schedule.OnMinutes != "" {
 		onTime := fmt.Sprintf("%s %s * * *", schedule.OnMinutes, schedule.OnHour)
 		cronLib.AddFunc(onTime, func() {
 			switchLight("on")
 		})
+	}
+	if schedule.OffHour != "" && schedule.OffMinutes != "" {
 		offTime := fmt.Sprintf("%s %s * * *", schedule.OffMinutes, schedule.OffHour)
 		cronLib.AddFunc(offTime, func() {
 			switchLight("off")
