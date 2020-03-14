@@ -28,7 +28,7 @@ type config struct {
 		Pin        int    `yaml:"pin"`
 		FollowerIP string `yaml:"followerIP"`
 		Debug      bool   `yaml:"debug"`
-		AutoUpdate bool   `yaml:"autoUpdate`
+		AutoUpdate bool   `yaml:"autoUpdate"`
 	} `yaml:"server"`
 
 	Schedule Schedule `yaml:"schedule"`
@@ -209,19 +209,28 @@ func scheduleHandler(w http.ResponseWriter, req *http.Request) {
 	} else if op == "update" {
 		onTime := req.FormValue("onTime")
 		offTime := req.FormValue("offTime")
-		if onTime == "" || offTime == "" {
-			fmt.Fprintf(w, "error")
-		} else {
-			cfg := readConfig()
-			cfg.Schedule = Schedule{
-				strings.Split(onTime, ":")[0],
-				strings.Split(onTime, ":")[1],
-				strings.Split(offTime, ":")[0],
-				strings.Split(offTime, ":")[1],
-			}
-			writeConfig(cfg)
-			configureCron(cfg.Schedule)
+		cfg := readConfig()
+		onHour := ""
+		onMinutes := ""
+		if onTime != "" {
+			onHour = strings.Split(onTime, ":")[0]
+			onMinutes = strings.Split(onTime, ":")[1]
 		}
+		offHour := ""
+		offMinutes := ""
+		if offTime != "" {
+			offHour = strings.Split(offTime, ":")[0]
+			offMinutes = strings.Split(offTime, ":")[1]
+		}
+
+		cfg.Schedule = Schedule{
+			onHour,
+			onMinutes,
+			offHour,
+			offMinutes,
+		}
+		writeConfig(cfg)
+		configureCron(cfg.Schedule)
 	} else {
 		fmt.Fprintf(w, "error")
 	}

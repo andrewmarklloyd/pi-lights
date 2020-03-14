@@ -34,7 +34,7 @@
           </div>
         </div>
         <div class="mt-4">
-          <form action="/schedule?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination" onsubmit="return scheduleSubmit();">
+          <form action="/schedule?op=update" method="post" enctype="application/x-www-form-urlencoded" target="formDestination">
             <div class="form-group input-group input-group-lg">
               <label class="text-white" style="font-size: 30px;" for="onTime">On<br>Time</label>
               <input id="onTime" type="time" name="onTime" class="form-control input-lg bg-dark text-white" placeholder="" aria-label="" aria-describedby="basic-addon1" value="{{ .Schedule.OnHour }}:{{ .Schedule.OnMinutes }}" style="font-size: 50px;">

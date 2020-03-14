@@ -2,3 +2,4 @@ lights
 config.yml
 version
 latestVersion
+.DS_Store
