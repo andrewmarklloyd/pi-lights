@@ -3,7 +3,7 @@ Description=Pagekite
 After=network.target
 
 [Service]
-ExecStart="/usr/local/bin/pagekite.py 8080 {{.kiteName}}.pagekite.me"
+ExecStart=/usr/local/bin/pagekite.py 8080 {{.kiteName}}.pagekite.me
 WorkingDirectory=/home/pi/
 StandardOutput=inherit
 StandardError=inherit
