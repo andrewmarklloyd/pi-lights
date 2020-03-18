@@ -53,6 +53,10 @@ type HomePageData struct {
 	AutoUpdate    bool
 }
 
+type pinBody struct {
+	Op string
+}
+
 var pin rpio.Pin
 var pinNumber int
 var testmode bool
@@ -268,9 +272,18 @@ func switchLight(op string) {
 }
 
 func pinHandler(w http.ResponseWriter, req *http.Request) {
-	op := req.Header.Get("op")
-	switchLight(op)
-	fmt.Fprintf(w, op)
+	decoder := json.NewDecoder(req.Body)
+	var pinBody pinBody
+	err := decoder.Decode(&pinBody)
+	if err != nil {
+		panic(err)
+	}
+	if pinBody.Op == "on" || pinBody.Op == "off" {
+		switchLight(pinBody.Op)
+		fmt.Fprintf(w, pinBody.Op)
+	} else {
+		fmt.Fprintf(w, "err")
+	}
 }
 
 func systemHandler(w http.ResponseWriter, req *http.Request) {
