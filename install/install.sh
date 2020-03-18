@@ -41,7 +41,11 @@ install_pagekite() {
   curl -O https://pagekite.net/pk/pagekite.py
   chmod +x pagekite.py
   sudo mv -f pagekite.py /usr/local/bin
-  sed "s/{{.kiteName}}/${KITE_NAME}/g" pagekite.service
+  # TODO: configure kite here for first time
+  sed "s/{{.kiteName}}/${KITE_NAME}/g" ${archive_path}/install/pagekite.service
+  sudo mv ${archive_path}/install/pagekite.service /etc/systemd/system/
+  sudo systemctl enable lights.service
+  sudo systemctl start lights.service
 }
 
 echo "Would you like to enable pagekite service? [y/n]"
