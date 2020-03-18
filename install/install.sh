@@ -25,8 +25,27 @@ mv ${archive_path}/default.config.yml ${install_dir}/config.yml
 echo -n ${latestVersion} > ${install_dir}/static/version
 echo -n ${latestVersion} > ${install_dir}/static/latestVersion
 mv ${archive_path}/lights ${install_dir}/
+
+echo "Enter token to be used for API authentication, then press enter"
+read -s token
+sed -i "s/{{.token}}/${token}/g" ${archive_path}/install/lights.service
 sudo mv ${archive_path}/install/lights.service /etc/systemd/system/
 rm -rf ${archive_path}
 
 sudo systemctl enable lights.service
 sudo systemctl start lights.service
+
+install_pagekite() {
+  echo "Enter the kite name:"
+  read KITE_NAME
+  curl -O https://pagekite.net/pk/pagekite.py
+  chmod +x pagekite.py
+  sudo mv -f pagekite.py /usr/local/bin
+  sed "s/{{.kiteName}}/${KITE_NAME}/g" pagekite.service
+}
+
+echo "Would you like to enable pagekite service? [y/n]"
+read answer
+if [[ ${answer} == "y" ]]; then
+  install_pagekite
+fi
