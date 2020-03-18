@@ -54,7 +54,8 @@ type HomePageData struct {
 }
 
 type pinBody struct {
-	Op string
+	Op    string
+	Token string
 }
 
 var pin rpio.Pin
@@ -278,7 +279,8 @@ func pinHandler(w http.ResponseWriter, req *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	if pinBody.Op == "on" || pinBody.Op == "off" {
+	token := os.Getenv("TOKEN")
+	if token == pinBody.Token && (pinBody.Op == "on" || pinBody.Op == "off") {
 		switchLight(pinBody.Op)
 		fmt.Fprintf(w, pinBody.Op)
 	} else {
